@@ -588,6 +588,92 @@ curl -X POST https://lns-signals.sera-holt.workers.dev/v1/run \
 
 </div>
 
+  <!-- Mobile / Responsive -->
+  <div class="section">
+    <div class="section-header"><h2>Mobile &amp; Responsive Checks</h2></div>
+
+    <div class="rule-box">
+      <h3>Run after any layout, nav, or UI change</h3>
+      <ul>
+        <li>Mobile: 390×844 (iPhone 14)</li>
+        <li>Tablet: 768×1024 (iPad)</li>
+        <li>Key checks: nav doesn't clip, headers stack, tables don't overflow, buttons don't overlap</li>
+      </ul>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">Mobile screenshot sweep — all platforms</span>
+        <span class="test-desc">390×844 + 768×1024 for CDI, OM (authed), Genome, lns-geo</span>
+      </div>
+      <div class="test-body">
+        <h4>Full sweep (requires OM credentials in OpenBrain)</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd /tmp && node -e "
+const { chromium } = require('playwright');
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const viewports = [
+    { name: 'mobile', width: 390,  height: 844  },
+    { name: 'tablet', width: 768,  height: 1024 },
+  ];
+
+  // ── Unauthenticated sites ──────────────────────
+  const publicSites = [
+    { name: 'genome',  url: 'https://genome-api-production.up.railway.app' },
+    { name: 'cdi',     url: 'https://cdi.sera-holt.workers.dev' },
+    { name: 'lns-geo', url: 'https://lns-geo.pages.dev' },
+  ];
+  for (const vp of viewports) {
+    for (const site of publicSites) {
+      const page = await browser.newPage();
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(site.url, { waitUntil: 'networkidle', timeout: 30000 });
+      await new Promise(r => setTimeout(r, 3000));
+      await page.screenshot({ path: '/tmp/' + site.name + '-' + vp.name + '.png' });
+      const body = await page.textContent('body');
+      console.log(site.name, vp.name, '— error?', body.includes('Application error'));
+      await page.close();
+    }
+  }
+
+  // ── Ops Maturity (authenticated) ──────────────
+  for (const vp of viewports) {
+    const page = await browser.newPage();
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('https://ops-maturity.vercel.app/auth/signin', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.fill('input[name=\"email\"]', 'rdcahalane@gmail.com');
+    await page.fill('input[name=\"password\"]', 'Axiom2026!QA');
+    await Promise.all([page.waitForNavigation({ timeout: 15000 }), page.click('button[type=\"submit\"]')]);
+    await new Promise(r => setTimeout(r, 2000));
+    await page.screenshot({ path: '/tmp/om-home-' + vp.name + '.png' });
+    await page.goto('https://ops-maturity.vercel.app/admin/users', { waitUntil: 'networkidle', timeout: 20000 });
+    await new Promise(r => setTimeout(r, 2000));
+    await page.screenshot({ path: '/tmp/om-admin-' + vp.name + '.png' });
+    console.log('om', vp.name, 'done — url:', page.url());
+    await page.close();
+  }
+
+  await browser.close();
+  console.log('All screenshots saved to /tmp/');
+})();
+"</pre>
+        <h4>What to check in screenshots</h4>
+        <div class="checks">
+          <span class="check">Nav doesn't clip or overlap</span>
+          <span class="check">Page header stacks (not side-by-side overflow)</span>
+          <span class="check">Tables scroll or reflow (not cut off)</span>
+          <span class="check">Buttons full-width or properly sized</span>
+          <span class="check">No horizontal scrollbar on body</span>
+          <span class="check">No "Application error" text</span>
+        </div>
+        <div class="playwright-note" style="margin-top:12px;">
+          <strong>Known baseline (2026-04-03):</strong> Genome nav scrolls horizontally on mobile ✓ · OM home header stacks vertically ✓ · OM admin role grid 2-col on mobile ✓ · CDI login clean ✓
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
   function toggle(header) {
     const card = header.closest('.test-card');
