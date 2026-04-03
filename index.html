@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Harness — Axiom / LNS Platform Tests</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3a;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #6366f1;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+      --cyan: #06b6d4;
+      --orange: #f97316;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+    .header h1 { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: 0.05em; }
+    .header .subtitle { color: var(--muted); font-size: 12px; }
+    .badge { background: var(--accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px; }
+    .section { margin-bottom: 40px; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .section-header h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .project-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .tag-cdi      { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+    .tag-om       { background: rgba(34,197,94,0.15); color: #86efac; }
+    .tag-analyst  { background: rgba(234,179,8,0.15); color: #fde047; }
+    .tag-geo      { background: rgba(6,182,212,0.15); color: #67e8f9; }
+    .tag-mi       { background: rgba(249,115,22,0.15); color: #fdba74; }
+    .tag-genome   { background: rgba(168,85,247,0.15); color: #d8b4fe; }
+    .tag-signals  { background: rgba(239,68,68,0.15); color: #fca5a5; }
+    .test-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+    .test-card-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; user-select: none; }
+    .test-card-header:hover { background: rgba(255,255,255,0.03); }
+    .test-name { font-weight: 600; color: var(--text); flex: 1; }
+    .test-desc { color: var(--muted); font-size: 12px; }
+    .chevron { color: var(--muted); transition: transform 0.2s; font-size: 10px; }
+    .test-card.open .chevron { transform: rotate(90deg); }
+    .test-body { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border); }
+    .test-card.open .test-body { display: block; }
+    .test-body h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 12px 0 6px; }
+    pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; overflow-x: auto; font-size: 12px; color: #94a3b8; white-space: pre-wrap; word-break: break-all; }
+    .copy-btn { float: right; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-family: inherit; margin-top: -2px; }
+    .copy-btn:hover { background: rgba(99,102,241,0.4); }
+    .copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.4); }
+    .checks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .check { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #86efac; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+    .playwright-note { background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2); border-radius: 6px; padding: 10px 14px; margin-top: 10px; color: #67e8f9; font-size: 12px; }
+    .playwright-note strong { color: var(--cyan); }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .rule-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+    .rule-box h3 { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .rule-box ul { list-style: none; }
+    .rule-box ul li { color: var(--muted); font-size: 12px; padding: 2px 0; }
+    .rule-box ul li::before { content: '▸ '; color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 8px 12px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); }
+    td { padding: 8px 12px; border-bottom: 1px solid rgba(42,45,58,0.5); color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
+    .dot-green { background: var(--green); }
+    .dot-yellow { background: var(--yellow); }
+    .dot-red { background: var(--red); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>QA Harness · Axiom / LNS Platforms</h1>
+    <div class="subtitle">All test scripts, Playwright patterns, and post-deploy verification protocols</div>
+  </div>
+  <span class="badge">v1.0 · 2026-04</span>
+</div>
+
+<div class="container">
+
+  <!-- Legend -->
+  <div class="legend">
+    <span class="project-tag tag-cdi">CDI</span>
+    <span class="project-tag tag-om">Ops Maturity</span>
+    <span class="project-tag tag-analyst">analyst-ai</span>
+    <span class="project-tag tag-geo">lns-geo</span>
+    <span class="project-tag tag-mi">Market Intelligence</span>
+    <span class="project-tag tag-genome">Genome</span>
+    <span class="project-tag tag-signals">Signals</span>
+  </div>
+
+  <!-- Global Rules -->
+  <div class="section">
+    <div class="section-header"><h2>Global Testing Rules</h2></div>
+    <div class="rule-box">
+      <h3>After every commit + push</h3>
+      <ul>
+        <li>Open the deployed app in a Playwright headless browser and verify the changed UI path</li>
+        <li>Test actual UI interactions — not just API endpoints</li>
+        <li>For CDI: run <code>test-teams-scenarios.mjs</code> (11 scenarios) + <code>test-bot.js</code></li>
+        <li>For ops-maturity: verify admin/users page, assessment create flow, and PPTX export</li>
+        <li>For lns-geo: verify map canvas renders, controls panel loads, scroll isolation works</li>
+        <li>Send iMessage to +14407493614 if blocked waiting for input or when deploy confirmed</li>
+        <li>Never declare a visual bug fixed without Playwright screenshot verification</li>
+      </ul>
+    </div>
+    <div class="rule-box">
+      <h3>Playwright is at <code>/tmp/node_modules/playwright</code></h3>
+      <ul>
+        <li>Installed globally in /tmp — always <code>const { chromium } = require('playwright')</code></li>
+        <li>Run from <code>cd /tmp</code> before invoking playwright scripts</li>
+        <li>Screenshots save to <code>/tmp/*.png</code> for inspection</li>
+        <li>Standard viewport: 1280×800 (desktop) or 900×650 (map views)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Overview Table -->
+  <div class="section">
+    <div class="section-header"><h2>Test Coverage Overview</h2></div>
+    <div class="test-card">
+      <div class="test-body" style="display:block; padding: 16px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Test Files</th>
+              <th>Framework</th>
+              <th>Deploy</th>
+              <th>Auto-run?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="project-tag tag-cdi">CDI</span></td>
+              <td>8 scripts (mjs/js)</td>
+              <td>Playwright + Node</td>
+              <td>Cloudflare Workers</td>
+              <td><span class="status-dot dot-yellow"></span>Manual after deploy</td>
+            </tr>
+            <tr>
+              <td><span class="project-tag tag-om">Ops Maturity</span></td>
+              <td>2 scripts + Playwright QA</td>
+              <td>Node + Playwright</td>
+              <td>Vercel (auto on push)</td>
+              <td><span class="status-dot dot-yellow"></span>Manual after deploy</td>
+            </tr>
+            <tr>
+              <td><span class="project-tag tag-analyst">analyst-ai</span></td>
+              <td>4 scripts (mjs/sh)</td>
+              <td>Playwright + Node</td>
+              <td>Railway</td>
+              <td><span class="status-dot dot-green"></span>Nightly cron at 2am</td>
+            </tr>
+            <tr>
+              <td><span class="project-tag tag-geo">lns-geo</span></td>
+              <td>Playwright patterns (no files)</td>
+              <td>Playwright</td>
+              <td>Cloudflare Pages</td>
+              <td><span class="status-dot dot-yellow"></span>Manual pattern</td>
+            </tr>
+            <tr>
+              <td><span class="project-tag tag-mi">Market Intelligence</span></td>
+              <td>3 Python scripts</td>
+              <td>Python unittest</td>
+              <td>Vercel + Modal</td>
+              <td><span class="status-dot dot-yellow"></span>Manual after deploy</td>
+            </tr>
+            <tr>
+              <td><span class="project-tag tag-genome">Genome</span></td>
+              <td>4 Python scripts</td>
+              <td>Python</td>
+              <td>Railway + Vercel</td>
+              <td><span class="status-dot dot-red"></span>No formal harness</td>
+            </tr>
+            <tr>
+              <td><span class="project-tag tag-signals">Signals</span></td>
+              <td>Health check endpoint</td>
+              <td>HTTP curl</td>
+              <td>Cloudflare Workers</td>
+              <td><span class="status-dot dot-red"></span>No test harness</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDI -->
+  <div class="section">
+    <div class="section-header">
+      <h2>CDI — Company Diagnostic Intelligence</h2>
+      <span class="project-tag tag-cdi">CDI</span>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">test-teams-scenarios.mjs</span>
+        <span class="test-desc">11-scenario round-trip Teams bot test — primary QA gate</span>
+        <span class="project-tag tag-cdi">CDI</span>
+      </div>
+      <div class="test-body">
+        <h4>What it tests</h4>
+        <p style="color:var(--muted); font-size:12px; margin-bottom:8px;">Full pipeline: Teams webhook → AI analysis → PDF/Word export, text analysis, edge cases. 11 scenarios. Takes 7–12 min fresh, ~2 min for text-only.</p>
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/cdi
+node scripts/test-teams-scenarios.mjs
+
+# Export only:
+TEAMS_SUITE=export node scripts/test-teams-scenarios.mjs
+
+# With screenshots:
+TEAMS_SCREENSHOT=1 node scripts/test-teams-scenarios.mjs</pre>
+        <h4>Auth required</h4>
+        <pre>scripts/.teams-auth.json  # set up via: node scripts/teams-auth-setup.mjs</pre>
+        <h4>Checks</h4>
+        <div class="checks">
+          <span class="check">PDF export</span>
+          <span class="check">Word export</span>
+          <span class="check">Text analysis</span>
+          <span class="check">Edge cases</span>
+          <span class="check">Sprint pipeline</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">test-bot.js</span>
+        <span class="test-desc">Webhook unit tests — synthetic bot activities</span>
+        <span class="project-tag tag-cdi">CDI</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/cdi
+node scripts/test-bot.js
+# or with custom base URL:
+node scripts/test-bot.js --base-url https://cdi.sera-holt.workers.dev</pre>
+        <h4>Checks</h4>
+        <div class="checks">
+          <span class="check">Webhook auth</span>
+          <span class="check">Bot response format</span>
+          <span class="check">Teams card rendering</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">test-sprint-pipeline.mjs</span>
+        <span class="test-desc">Full sprint pipeline — prompt → AI → PDF export quality check</span>
+        <span class="project-tag tag-cdi">CDI</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/cdi
+TEST_AUTH_TOKEN=&lt;supabase_access_token&gt; \
+TEST_CONVERSATION_ID=&lt;conversation_id&gt; \
+node scripts/test-sprint-pipeline.mjs</pre>
+        <h4>Checks</h4>
+        <div class="checks">
+          <span class="check">Sprint prompt assembly</span>
+          <span class="check">AI response quality</span>
+          <span class="check">PDF generation</span>
+          <span class="check">No filler patterns</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">test-pdf-local.mjs / test-pptx-local.mjs</span>
+        <span class="test-desc">Local export builders — no server or auth required</span>
+        <span class="project-tag tag-cdi">CDI</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/cdi
+node scripts/test-pdf-local.mjs
+node scripts/test-pptx-local.mjs</pre>
+        <h4>Checks</h4>
+        <div class="checks">
+          <span class="check">PDF renders</span>
+          <span class="check">PPTX opens</span>
+          <span class="check">Slide density correct</span>
+          <span class="check">No filler sections</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ops Maturity -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Ops Maturity</h2>
+      <span class="project-tag tag-om">Ops Maturity</span>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">Playwright — post-deploy UI verification</span>
+        <span class="test-desc">Standard pattern: verify admin, assessment, and export flows</span>
+        <span class="project-tag tag-om">Ops Maturity</span>
+      </div>
+      <div class="test-body">
+        <h4>Standard post-deploy check</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd /tmp && node -e "
+const { chromium } = require('playwright');
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  // Sign in
+  await page.goto('https://ops-maturity.vercel.app/auth/signin', { waitUntil: 'networkidle', timeout: 30000 });
+  await page.fill('input[name=\"email\"]', 'YOUR_EMAIL');
+  await page.fill('input[name=\"password\"]', 'YOUR_PASSWORD');
+  await Promise.all([page.waitForNavigation({ timeout: 15000 }), page.click('button[type=\"submit\"]')]);
+  await new Promise(r => setTimeout(r, 2000));
+
+  // Test admin/users
+  await page.goto('https://ops-maturity.vercel.app/admin/users', { waitUntil: 'networkidle', timeout: 30000 });
+  const body = await page.textContent('body');
+  console.log('App error?', body.includes('Application error'));
+  console.log('Users page loaded?', page.url().includes('admin/users'));
+
+  await page.screenshot({ path: '/tmp/om-admin-users.png' });
+  await browser.close();
+})();
+"</pre>
+        <h4>Key flows to test manually</h4>
+        <div class="checks">
+          <span class="check">Create assessment</span>
+          <span class="check">Upload + analyze photo</span>
+          <span class="check">View recommendations</span>
+          <span class="check">Export PPTX roadmap</span>
+          <span class="check">Admin user management</span>
+          <span class="check">Cancel/Resend invite</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">test-email.ts</span>
+        <span class="test-desc">Verify Resend email delivery</span>
+        <span class="project-tag tag-om">Ops Maturity</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/ops-maturity
+TEST_TO=ryan@axiomsystems.io npx ts-node scripts/test-email.ts</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- analyst-ai -->
+  <div class="section">
+    <div class="section-header">
+      <h2>analyst-ai (CIVY Personas)</h2>
+      <span class="project-tag tag-analyst">analyst-ai</span>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">npm run test:full</span>
+        <span class="test-desc">Complete test suite — structure, chat, files, browser, exploratory</span>
+        <span class="project-tag tag-analyst">analyst-ai</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/analyst-ai
+npm run test:full</pre>
+        <h4>Individual suites</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>npm run test:structure   # page structure check
+npm run test:chat        # multi-turn chat
+npm run test:files       # file uploads
+npm run test:browser     # Playwright real browser
+npm run test:exploratory # edge cases, rapid clicks, mobile viewport
+npm run test:security    # OWASP checks</pre>
+        <h4>Persona-specific</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>node scripts/test-browser.mjs --persona=kathy --headed
+node scripts/test-browser.mjs --persona=ryan
+node scripts/test-browser.mjs --persona=patrick
+node scripts/test-browser.mjs --persona=mike</pre>
+        <h4>Nightly cron</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>bash scripts/nightly-test.sh  # runs at 2am, sends iMessage if failures</pre>
+        <h4>Checks</h4>
+        <div class="checks">
+          <span class="check">Page structure (4 personas)</span>
+          <span class="check">Chat response</span>
+          <span class="check">File uploads</span>
+          <span class="check">Multi-turn context</span>
+          <span class="check">Mobile viewport</span>
+          <span class="check">Security headers</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- lns-geo -->
+  <div class="section">
+    <div class="section-header">
+      <h2>lns-geo (WorldView Map)</h2>
+      <span class="project-tag tag-geo">lns-geo</span>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">Playwright — map and controls verification</span>
+        <span class="test-desc">Verify map renders, controls panel loads, scroll isolation works</span>
+        <span class="project-tag tag-geo">lns-geo</span>
+      </div>
+      <div class="test-body">
+        <h4>Standard post-deploy check</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd /tmp && node -e "
+const { chromium } = require('playwright');
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.setViewportSize({ width: 900, height: 650 });
+  await page.goto('https://lns-geo.pages.dev', { waitUntil: 'networkidle', timeout: 30000 });
+  await new Promise(r => setTimeout(r, 4000));
+
+  // Map canvas
+  const canvas = await page.\$('canvas');
+  const box = await canvas?.boundingBox();
+  console.log('Map canvas:', box?.width > 0 ? 'OK' : 'MISSING');
+
+  // Controls panel
+  const panel = await page.\$('[class*=\"rounded-xl\"]');
+  console.log('Controls panel:', panel ? 'OK' : 'MISSING');
+
+  // Scroll isolation
+  const before = await page.evaluate(() => document.querySelector('[style*=\"overflow\"]')?.scrollTop ?? 0);
+  await page.mouse.wheel(0, 200);
+  await new Promise(r => setTimeout(r, 500));
+  const after = await page.evaluate(() => document.querySelector('[style*=\"overflow\"]')?.scrollTop ?? 0);
+  console.log('Scroll isolation:', after > before ? 'OK' : 'CHECK');
+
+  await page.screenshot({ path: '/tmp/lns-geo.png' });
+  await browser.close();
+})();
+"</pre>
+        <h4>Checks</h4>
+        <div class="checks">
+          <span class="check">Map canvas renders</span>
+          <span class="check">Controls panel visible</span>
+          <span class="check">Scroll isolation (no map zoom)</span>
+          <span class="check">Signals tab loads</span>
+          <span class="check">Filters tab loads</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Intelligence -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Market Intelligence</h2>
+      <span class="project-tag tag-mi">Market Intelligence</span>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">test-roundtrip.py</span>
+        <span class="test-desc">Full pipeline: trigger → Modal → KV → DB → snapshot</span>
+        <span class="project-tag tag-mi">Market Intelligence</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/"Market Intelligence"
+python scripts/test-roundtrip.py --check-only
+# or trigger specific pipeline:
+python scripts/test-roundtrip.py --pipeline jobs
+# all pipelines:
+python scripts/test-roundtrip.py --all</pre>
+        <h4>Exit codes</h4>
+        <pre>0 = pass    1 = failures</pre>
+        <h4>Checks</h4>
+        <div class="checks">
+          <span class="check">Modal invocation</span>
+          <span class="check">KV storage</span>
+          <span class="check">DB write</span>
+          <span class="check">Snapshot integrity</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">check_score_drift.py</span>
+        <span class="test-desc">Score regression — compares current vs baseline, flags drift</span>
+        <span class="project-tag tag-mi">Market Intelligence</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/"Market Intelligence"
+python3 scripts/check_score_drift.py
+python3 scripts/check_score_drift.py --threshold 0.05</pre>
+        <h4>Exit codes / thresholds</h4>
+        <pre>0 = stable    1 = drift detected    2 = no baseline
+Thresholds: >5% ticker action change, >0.03 mean drift, >0.15 individual</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Genome -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Genome Studio</h2>
+      <span class="project-tag tag-genome">Genome</span>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">batch_fingerprint.py</span>
+        <span class="test-desc">Fingerprint all companies; verify API + DB pipeline</span>
+        <span class="project-tag tag-genome">Genome</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd ~/projects/genome
+python -m scripts.batch_fingerprint                 # all companies
+python -m scripts.batch_fingerprint --skip-existing  # only new</pre>
+        <h4>Studio post-deploy Playwright check</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>cd /tmp && node -e "
+const { chromium } = require('playwright');
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('https://genome-api-production.up.railway.app', { waitUntil: 'networkidle', timeout: 30000 });
+  await new Promise(r => setTimeout(r, 3000));
+  const body = await page.textContent('body');
+  console.log('App error?', body.includes('Application error'));
+  console.log('Atlas loaded?', body.includes('Industrial Atlas') || body.includes('Genome'));
+  await page.screenshot({ path: '/tmp/genome-studio.png' });
+  await browser.close();
+})();
+"</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signals -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Signals Service</h2>
+      <span class="project-tag tag-signals">Signals</span>
+    </div>
+
+    <div class="test-card">
+      <div class="test-card-header" onclick="toggle(this)">
+        <span class="chevron">▶</span>
+        <span class="test-name">Health check</span>
+        <span class="test-desc">Verify Cloudflare Worker is live and responding</span>
+        <span class="project-tag tag-signals">Signals</span>
+      </div>
+      <div class="test-body">
+        <h4>Command</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button>curl https://lns-signals.sera-holt.workers.dev/v1/health</pre>
+        <h4>Trigger manual pipeline run</h4>
+        <pre><button class="copy-btn" onclick="copy(this)">copy</button># Permits pipeline
+curl -X POST https://lns-signals.sera-holt.workers.dev/v1/run \
+  -H "Content-Type: application/json" \
+  -d '{"pipeline":"permits"}'</pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function toggle(header) {
+    const card = header.closest('.test-card');
+    card.classList.toggle('open');
+  }
+
+  function copy(btn) {
+    const pre = btn.closest('pre');
+    const text = pre.innerText.replace('copy', '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
