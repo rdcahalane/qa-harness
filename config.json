@@ -1,0 +1,119 @@
+{
+  "projects": [
+    {
+      "name": "genome",
+      "path": "~/projects/genome",
+      "languages": ["python", "typescript", "javascript"],
+      "deploy_target": "railway+vercel",
+      "description": "System ID engine, FastAPI API, React Studio",
+      "ignore_patterns": [
+        "node_modules", "venv", ".venv", "__pycache__", ".next", ".git",
+        "dist", "build", ".vercel", "*.pyc", ".claude"
+      ],
+      "supabase_project": "mngmqcmzscltyplnspvx"
+    },
+    {
+      "name": "Market Intelligence",
+      "path": "~/projects/Market Intelligence",
+      "languages": ["python", "typescript", "javascript"],
+      "deploy_target": "vercel+modal",
+      "description": "Python pipelines + Next.js frontend",
+      "ignore_patterns": [
+        "node_modules", "venv", ".venv", "__pycache__", ".next", ".git",
+        "dist", "build", ".vercel", "*.pyc", ".claude"
+      ],
+      "supabase_project": "mngmqcmzscltyplnspvx"
+    },
+    {
+      "name": "cdi",
+      "path": "~/projects/cdi",
+      "languages": ["typescript", "javascript"],
+      "deploy_target": "cloudflare",
+      "description": "Next.js, Cloudflare Workers, Supabase",
+      "ignore_patterns": [
+        "node_modules", ".next", ".git", "dist", "build", ".wrangler",
+        ".vercel", ".claude"
+      ],
+      "supabase_project": "gjrewathdhkghwwsvepz"
+    },
+    {
+      "name": "ops-maturity",
+      "path": "~/projects/ops-maturity",
+      "languages": ["typescript", "javascript"],
+      "deploy_target": "vercel",
+      "description": "Next.js, Vercel, Supabase",
+      "ignore_patterns": [
+        "node_modules", ".next", ".git", "dist", "build", ".vercel", ".claude"
+      ],
+      "supabase_project": "mngmqcmzscltyplnspvx"
+    },
+    {
+      "name": "analyst-ai",
+      "path": "~/projects/analyst-ai",
+      "languages": ["javascript"],
+      "deploy_target": "railway",
+      "description": "Node.js HTTP server",
+      "ignore_patterns": [
+        "node_modules", ".git", "dist", "build", ".claude"
+      ]
+    },
+    {
+      "name": "trading",
+      "path": "~/projects/trading",
+      "languages": ["javascript"],
+      "deploy_target": "local+railway",
+      "description": "Node.js, Alpaca paper, Supabase",
+      "ignore_patterns": [
+        "node_modules", ".git", "dist", "build", ".claude"
+      ],
+      "supabase_project": "mngmqcmzscltyplnspvx"
+    },
+    {
+      "name": "openbrain",
+      "path": "~/projects/openbrain",
+      "languages": ["javascript"],
+      "deploy_target": "local",
+      "description": "Node.js, Postgres local",
+      "ignore_patterns": [
+        "node_modules", ".git", "dist", "build", ".claude"
+      ]
+    },
+    {
+      "name": "signals",
+      "path": "~/projects/signals",
+      "languages": ["javascript"],
+      "deploy_target": "cloudflare",
+      "description": "Cloudflare Workers",
+      "ignore_patterns": [
+        "node_modules", ".git", "dist", "build", ".wrangler", ".claude"
+      ]
+    },
+    {
+      "name": "inbox",
+      "path": "~/projects/inbox",
+      "languages": ["javascript"],
+      "deploy_target": "local",
+      "description": "Node.js, Gmail IMAP",
+      "ignore_patterns": [
+        "node_modules", ".git", "dist", "build", ".claude"
+      ]
+    }
+  ],
+  "secret_patterns": [
+    "(?i)(api[_-]?key|apikey|secret[_-]?key|auth[_-]?token|access[_-]?token|private[_-]?key|password|passwd|credential)\\s*[:=]\\s*[\"'][^\"']{8,}[\"']",
+    "(?i)(supabase|anthropic|openai|stripe|twilio|sendgrid|aws|firebase|heroku|vercel|cloudflare|railway|github|slack|telegram|discord).*[:=]\\s*[\"'][A-Za-z0-9_\\-\\.]{20,}[\"']",
+    "sk-[A-Za-z0-9]{20,}",
+    "ghp_[A-Za-z0-9]{36}",
+    "eyJ[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{20,}",
+    "xoxb-[0-9]{10,}-[A-Za-z0-9]{20,}",
+    "-----BEGIN (RSA |EC )?PRIVATE KEY-----"
+  ],
+  "safe_secret_files": [
+    ".env", ".env.local", ".env.development", ".env.production",
+    ".env.example", ".env.sample", ".env.template"
+  ],
+  "report_dir": "/tmp",
+  "openbrain_url": "http://localhost:3210",
+  "openbrain_token": "openbrain-dev-token",
+  "alert_file": "/tmp/qa-alert.txt"
+}
