@@ -4,7 +4,7 @@
       "name": "genome",
       "path": "~/projects/genome",
       "languages": ["python", "typescript", "javascript"],
-      "deploy_target": "railway+vercel",
+      "deploy_target": "beast+vercel",
       "description": "System ID engine, FastAPI API, React Studio",
       "ignore_patterns": [
         "node_modules", "venv", ".venv", "__pycache__", ".next", ".git",
@@ -51,8 +51,8 @@
       "name": "analyst-ai",
       "path": "~/projects/analyst-ai",
       "languages": ["javascript"],
-      "deploy_target": "railway",
-      "description": "Node.js HTTP server",
+      "deploy_target": "deprecated",
+      "description": "Node.js HTTP server — DEPRECATED (Railway closed 2026-05-25)",
       "ignore_patterns": [
         "node_modules", ".git", "dist", "build", ".claude"
       ]
@@ -61,7 +61,7 @@
       "name": "trading",
       "path": "~/projects/trading",
       "languages": ["javascript"],
-      "deploy_target": "local+railway",
+      "deploy_target": "local+beast",
       "description": "Node.js, Alpaca paper, Supabase",
       "ignore_patterns": [
         "node_modules", ".git", "dist", "build", ".claude"
