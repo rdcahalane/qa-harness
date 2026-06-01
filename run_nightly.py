@@ -16,6 +16,7 @@ Usage:
 import argparse
 import json
 import os
+import signal
 import sys
 import time
 import urllib.request
@@ -23,6 +24,17 @@ import urllib.error
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
+
+# Hard limit per check: 5 minutes. Prevents any single slow check from blocking the run.
+_CHECK_TIMEOUT_SEC = 300
+
+
+class _CheckTimeout(Exception):
+    pass
+
+
+def _timeout_handler(signum, frame):
+    raise _CheckTimeout()
 
 # Add parent dir to path so checks/ is importable
 sys.path.insert(0, str(Path(__file__).parent))
@@ -89,7 +101,10 @@ def run_all_checks(
         for check_name, check_fn in checks_to_run:
             check_start = time.time()
             try:
+                signal.signal(signal.SIGALRM, _timeout_handler)
+                signal.alarm(_CHECK_TIMEOUT_SEC)
                 findings = check_fn(project, global_config)
+                signal.alarm(0)
                 project_findings.extend(findings)
                 elapsed = time.time() - check_start
                 project_timings[check_name] = round(elapsed, 2)
@@ -104,7 +119,20 @@ def run_all_checks(
                 elif verbose:
                     print(f"  [{check_name}] clean ({elapsed:.1f}s)")
 
+            except _CheckTimeout:
+                signal.alarm(0)
+                elapsed = time.time() - check_start
+                project_timings[check_name] = round(elapsed, 2)
+                project_findings.append({
+                    "severity": "warning", "check": check_name,
+                    "file": project_name, "line": None,
+                    "message": f"Check timed out after {_CHECK_TIMEOUT_SEC}s — skipped",
+                    "snippet": None,
+                })
+                if verbose:
+                    print(f"  [{check_name}] TIMEOUT after {_CHECK_TIMEOUT_SEC}s")
             except Exception as e:
+                signal.alarm(0)
                 elapsed = time.time() - check_start
                 project_timings[check_name] = round(elapsed, 2)
                 error_finding = {
