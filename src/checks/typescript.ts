@@ -1,0 +1,1 @@
+// TypeScript typecheck script here
