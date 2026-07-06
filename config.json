@@ -113,7 +113,5 @@
     ".env.example", ".env.sample", ".env.template"
   ],
   "report_dir": "/tmp",
-  "openbrain_url": "http://localhost:3210",
-  "openbrain_token": "openbrain-dev-token",
   "alert_file": "/tmp/qa-alert.txt"
 }
