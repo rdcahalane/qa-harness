@@ -215,7 +215,7 @@ def save_report(report: Dict[str, Any], config: Dict[str, Any]) -> str:
 
 def save_to_openbrain(report: Dict[str, Any], config: Dict[str, Any]) -> bool:
     """Save summary to OpenBrain."""
-    url = config.get("openbrain_url", "http://ryans-macbook-pro.taildad96e.ts.net:3210")
+    url = config.get("openbrain_url", "http://canoeputer-1.taildad96e.ts.net:3210")
     token = config.get("openbrain_token", "")
 
     severity = report["severity_totals"]
